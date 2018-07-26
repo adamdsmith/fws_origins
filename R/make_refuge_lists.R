@@ -7,12 +7,12 @@ pacman::p_load(dplyr, sf, openxlsx)
 # From http://datazone.birdlife.org/species/spcdistPOS
 source("R/make_metadata.R")
 source("R/shorten_orgnames.R")
+source("R/make_birdlist.R")
+
 # refs <- readRDS(file.path(system.file("extdata/fws_interest.rds", package = "fwspp"))) %>%
-#   filter(RSL_TYPE == "NWR") %>%
-#   # Crude centroids are good enough
-#   st_centroid()
-# saveRDS(refs, file = "Output/refpts.rds")
-refs <- readRDS("Output/refpts.rds")
+#   filter(RSL_TYPE == "NWR")
+# saveRDS(refs, file = "Output/refs.rds")
+refs <- readRDS("Output/refs.rds")
 
 # botw <- read_sf(dsn = "~/FWS_Projects/GIS/BOTW.gdb",
 #                 layer = "All_Species", stringsAsFactors = FALSE, quiet = TRUE) %>%
@@ -22,33 +22,18 @@ refs <- readRDS("Output/refpts.rds")
 # saveRDS(refbirds, file = "Output/refbirds.rds")
 refbirds <- readRDS("Output/refbirds.rds")
 
-# Add common names
+# Fill out taxonomy from FWS and BirdLife
 # Oct 2015 version of checklist
 # From http://datazone.birdlife.org/species/taxonomy
-birdnames <- read.xlsx("Data/BirdLife_Checklist_Version_8.xlsx",
-                       startRow = 2) %>%
-  select(sciname = Scientific.name, comname = Common.name) %>%
-  filter(!is.na(comname))
-refbirds <- left_join(refbirds, birdnames, by = "sciname")
+bl_names <- read.xlsx("Data/BirdLife_Checklist_Version_8.xlsx",
+                      startRow = 2) %>%
+  # Getting rid of duplicates
+  select(SNFromBirdlife = Scientific.name, CNFromBirdlife = Common.name) %>%
+  filter(!is.na(CNFromBirdlife))
+fws_names <- read.csv("Data/USFWS_BirdLife_lookup.csv", stringsAsFactors = FALSE) %>%
+  select(-CNFromBirdlife)
+birdnames <- left_join(bl_names, fws_names, by = "SNFromBirdlife")
+refbirds <- left_join(refbirds, birdnames, by = "SNFromBirdlife")
 
-# Use Harris Neck as an example
-hn <- grep("HARRIS NECK", refs$ORGNAME)
-
-# for (i in seq(nrow(refs))) {
-for (i in hn) { # Harris Neck
-  rpt <- filter(refs, row_number() == i)
-  ref <- pull(rpt, ORGNAME) %>% shorten_orgnames()
-  out <- refbirds[st_intersects(rpt, refbirds)[[1]], ] %>% as.data.frame() %>%
-    left_join(presence, by = "pcode") %>%
-    left_join(origin, by = "ocode") %>%
-    left_join(seasonality, by = "scode") %>%
-    select(comname, sciname, presence = pname, origin = oname, seasonality = sname)
-  # Make, write, and save Excel spreadsheet
-  wb <- createWorkbook()
-  addWorksheet(wb, ref)
-  setColWidths(wb, 1, cols = seq_along(out), widths = "auto")
-  freezePane(wb, 1, firstRow = TRUE)
-  writeData(wb, 1, out)
-  path <- file.path("Output/refuge_birds", paste0(ref, ".xlsx"))
-  saveWorkbook(wb, path, overwrite = TRUE)
-}
+# Harris Neck
+make_birdlist()
