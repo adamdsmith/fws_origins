@@ -1,6 +1,6 @@
 presence <- tibble(
   pcode = 1:6,
-  pname = c("extant", "probably extant", "possibly extant", "possibly extinct", "extinct", "uncertain"),
+  pname = c("Extant", "Probably Extant", "Possibly Extant", "Possibly Extinct", "Extinct", "Uncertain"),
   pdesc = c("The species is known or thought very likely to occur presently in the area, usually encompassing current or recent localities where suitable habitat at appropriate altitudes remains.",
             "The species' presence is considered probable, either based on extrapolations of known records, or realistic inferences (e.g., based on distribution of suitable habitat at appropriate altitudes and proximity to areas where it is known or thought very likely to remain Extant). 'Probably Extant' ranges often extend beyond areas where the species is Extant, or may fall between them.",
             "The species may possibly occur, based on the distribution of suitable habitat at appropriate altitudes, but where there are no known records. 'Possibly Extant' ranges often extend beyond areas where the species is Extant (q.v.) or Probably Extant (q.v.), or may fall between them.",
@@ -11,8 +11,9 @@ presence <- tibble(
   
 origin <- tibble(
   ocode = 1:5,
-  oname = c("native", "reintroduced", "introduced", "vagrant", "uncertain"),
-  odesc = c("The species is/was native to the area",
+  bl_oname = c("Native", "Reintroduced", "Introduced", "Vagrant", "Origin Uncertain"),
+  fws_oname = c("Native", "Non-native", "Non-native", "Non-native", "Unknown"),
+  bl_odesc = c("The species is/was native to the area",
             "The species is/was reintroduced through either direct or indirect human activity",
             "The species is/was introduced outside of its historical distribution range through either direct or indirect human activity.",
             "The species is/was recorded once or sporadically, but it is known not to be native to the area.",
@@ -21,7 +22,8 @@ origin <- tibble(
 
 seasonality <- tibble(
   scode = 1:5,
-  sname = c("resident", "breeding", "non-breeding", "passage", "uncertain"),
+  bl_sname = c("Resident", "Breeding Season", "Non-breeding Season", "Passage", "Seasonal occurrence uncertain"),
+  fws_sname = c("Resident", "Breeding Season", "Non-breeding Season", "Migratory", "Seasonal Occurrence Uncertain"),
   sdesc = c("The species is/was known or thought very likely to be resident throughout the year",
             "The species is/was known or thought very likely to occur regularly during the breeding season and to breed.",
             "The species is/was known or thought very likely to occur regularly during the non-breeding season. In the Eurasian and North American contexts, this encompasses 'winter'.",
